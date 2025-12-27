@@ -1,28 +1,31 @@
 #!/bin/bash
 
 # ================== CONFIG ==================
-URL="http://localhost:3000"
-COMPOSE_FILE="/home/it/digital-eye-dashboard-ui/docker-compose.prod.yml"
-LOG_FILE="/home/it/digital-eye-dashboard-ui/ui-healthcheck.log"
+URL="http://localhost:8000"
+COMPOSE_FILE="/root_installations/digital_eye/docker-compose.yml"
+LOG_FILE="/root/installations/digital_eye/be-healthcheck.log"
 
 DEFAULT_USER_ID="6925a24381e2cda6690e0bcf"
 DEFAULT_USER_EMAIL="machine_user@issm.ai"
 DEFAULT_ORGANIZATION_ID="69259acf81e2cda6690e0b9a"
 # ===========================================
 
-# Check UI health
+# Log that the health check ran
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Backend health check executed" >> "$LOG_FILE"
+
+# Check backend health
 if ! curl -sf "$URL" > /dev/null; then
 
   TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
   MESSAGE_ID=$(date +%s%N)
 
   {
-    echo "$TIMESTAMP - UI health check FAILED for $URL"
+    echo "$TIMESTAMP - Backend health check FAILED for $URL"
     echo "Restarting services using $COMPOSE_FILE"
     echo "======================="
   } >> "$LOG_FILE"
 
-  # Restart UI service
+  # Restart backend service
   /usr/bin/docker compose -f "$COMPOSE_FILE" down
   /usr/bin/docker compose -f "$COMPOSE_FILE" up -d
 
@@ -35,9 +38,9 @@ if ! curl -sf "$URL" > /dev/null; then
         \"_id\": \"$DEFAULT_USER_ID\",
         \"email\": \"$DEFAULT_USER_EMAIL\"
       },
-      \"title\": \"Service Down: UI Application\",
+      \"title\": \"Service Down: Backend API\",
       \"tokens\": \"\",
-      \"body\": \"UI service health check failed on $URL. Service was restarted.\",
+      \"body\": \"Backend health check failed for $URL. Service was restarted.\",
       \"data\": {
         \"notificationType\": \"system\",
         \"messageId\": \"$MESSAGE_ID\",
